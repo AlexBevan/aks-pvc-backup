@@ -1,0 +1,49 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: aks-pvc-backup
+spec:
+  schedule: {{ .Values.SCHEDULE }} 
+  jobTemplate:
+    spec:
+      concurrencyPolicy: Forbid
+      template:
+        spec:
+          containers:
+          - name: aks-pvc-backup
+            image: alexbevan/aks-pvc-backup:latest
+            env:
+            - name: AZURE_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aks-pvc-backup
+                  key: azure_tenant_id            
+            - name: AZURE_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aks-pvc-backup
+                  key: azure_app_id            
+            - name: AZURE_APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aks-pvc-backup
+                  key: azure_app_key            
+            - name: AZURE_SUBSCRIPTION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aks-pvc-backup 
+                  key: azure_subscription_id            
+            - name: AKS_RG    
+              value: "{{ .Values.AKS_RG }}"        
+            - name: AKS_ASSET_RG
+              value: "{{ .Values.AKS_ASSET_RG }}"       
+            - name: AKS_NAME
+              value: "{{ .Values.AKS_NAME }}"
+            - name: AKS_BACKUP_TAGS_ONLY
+              value: "{{ .Values.AKS_BACKUP_TAGS_ONLY }}"
+            - name: AKS_BACKUP_RETENTION
+              value: "{{ .Values.AKS_BACKUP_RETENTION }}"
+
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2

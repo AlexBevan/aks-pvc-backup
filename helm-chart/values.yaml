@@ -1,0 +1,6 @@
+AKS_BACKUP_TAGS_ONLY: ""
+AKS_BACKUP_RETENTION: "30"
+SCHEDULE: "0 */6 * * *"
+AKS_RG: "change me"        
+AKS_ASSET_RG: "change me" #i.e MC_alextest-k8s_alextest-k8s_uksouth
+AKS_NAME: "change me"
