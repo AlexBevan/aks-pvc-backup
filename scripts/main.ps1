@@ -18,7 +18,7 @@ $aks_backup_retention = Get-Env "AKS_BACKUP_RETENTION"
 # The
 # Thing
 
-# Authenticate
+# Login
 
 Connect-AksEnvironment -tenant_id $tenant_id -app_id $app_id -app_key $app_key `
 -subscription_id $subscription_id -aks_rg $aks_rg -aks_name $aks_name
@@ -45,4 +45,5 @@ if ($aks_backup_retention) {
 }
 
 # leave
+write-output "$(get-date) Finished, exiting."
 exit
