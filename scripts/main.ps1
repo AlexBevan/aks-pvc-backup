@@ -27,13 +27,13 @@ Connect-AksEnvironment -tenant_id $tenant_id -app_id $app_id -app_key $app_key `
 # Create snapshots
 if ($aks_backup_tags_only){ # Backup only volumes tagged with "volume.kubernetes.io/backup" : "yes"
     write-output "$(get-date) Backing up all volumes matching volume.kubernetes.io/backup annotation."
-    Foreach ($volume in Get-VolumesMatchingAnnotation){
-        Backup-Disk -volumeName $volume 
+    Foreach ($volume in (Get-VolumesMatchingAnnotation).keys){
+        Backup-Disk -volumeName $volume -pvcName (Get-AllVolumes).$volume
     }
 } else { # backup all pvc volumes
     write-output "$(get-date) Backing up all volumes."
-    Foreach ($volume in Get-AllVolumes){
-        Backup-Disk -volumeName $volume 
+    Foreach ($volume in (Get-AllVolumes).keys){
+        Backup-Disk -volumeName $volume -pvcName (Get-AllVolumes).$volume
     }
 }
 

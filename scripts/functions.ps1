@@ -41,22 +41,22 @@ function Connect-AksEnvironment
 }
 
 function Get-VolumesMatchingAnnotation {
-    $volumes = @()
+    $volumes = @{}
     $pvcs = (kubectl get pvc --all-namespaces -o json | convertfrom-json)
     foreach ($item in $pvcs.items)
     {   
         if ($item.metadata.annotations  | Where-Object "volume.kubernetes.io/backup" -eq "yes"){
-            $volumes += $item.spec.volumeName
+            $volumes.add($item.spec.volumeName, $item.metadata.name)
         }
     }
     return $volumes
 }
 function Get-AllVolumes {
-    $volumes = @()
+    $volumes = @{}
     $pvcs = (kubectl get pvc --all-namespaces -o json | convertfrom-json)
     foreach ($item in $pvcs.items)
     {   
-        $volumes += $item.spec.volumeName
+        $volumes.add($item.spec.volumeName, $item.metadata.name)
     }
     return $volumes
 }
@@ -67,8 +67,11 @@ function Backup-Disk
     param
     (
         [Parameter(Mandatory=$true, 
-            HelpMessage="Name of the aks volume to be backed up.")]
-        [String]$volumeName
+        HelpMessage="Name of the aks volume to be backed up.")]
+        [String]$volumeName,
+        [Parameter(Mandatory=$true, 
+        HelpMessage="Name of the PVC the volume relates to.")]
+        [String]$pvcName
     )
     BEGIN
     {
@@ -80,9 +83,9 @@ function Backup-Disk
         $azdisk = Get-AzDisk -ResourceGroupName $aks_asset_rg -diskname $diskName
 
         $ErrorActionPreference = "continue"
-
-        $ssConfig =  New-AzSnapshotConfig -SourceUri $azdisk.Id -Location $azdisk.location -CreateOption copy
-        $timestamp = Get-Date -format "dd-MMM-yyyy-HHMM"
+        $timestamp = (Get-Date -format "dd-MMM-yyyy-HHMM").ToString()
+        $tags = @{timeStamp=$timestamp;pvcName=$pvcName}
+        $ssConfig =  New-AzSnapshotConfig -SourceUri $azdisk.Id -Location $azdisk.location -CreateOption copy -Tag $tags
         write-output "$(get-date) Creating new snapshot $diskName-$timestamp."
         New-AzSnapshot -Snapshot $ssConfig -SnapshotName $diskName-$timestamp -ResourceGroupName $aks_rg
 
