@@ -115,14 +115,13 @@ function Delete-OldSnapShots {
             foreach ($snapshot in $snapshots){
                 $date_from = (get-date).AddDays( - $retention_period)
                 if ($snapshot.TimeCreated -lt $date_from) { 
-                    $ErrorActionPreference = "SilentlyContinue"
+                    $ErrorActionPreference = "Continue"
                     $ss = Get-AzSnapshot -ResourceGroupName $aks_rg -name $($snapshot.Name)
                     if ($null -ne $ss)
                     {
                         write-output "$(get-date) Removing snapshot $($snapshot.Name)"
                         $ss | Remove-AzSnapshot -Force
                     }
-                    $ErrorActionPreference = "continue"
                 }
             }
         }
